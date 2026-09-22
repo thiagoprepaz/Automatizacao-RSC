@@ -1,0 +1,66 @@
+﻿EXTRAÇÃO RSC — SELEÇÃO DE PASTA
+
+Execute: python extrair_rsc.py
+Na janela, clique em Selecionar pasta e depois em Processar planilhas da pasta.
+Não é necessário fornecer modelo de entrada: a saída é criada automaticamente.
+
+Lê a primeira aba de todos os ODS diretamente na pasta, sem incluir subpastas.
+Não lê XLS/XLSX. Ignora Modelo para entrada macro.ods e arquivos com nome
+iniciado por Entrada macro preenchida.
+
+Para cada origem com I18 > 0, gera uma linha com:
+SIAPE/7 = B8; Nome = B7; MÊS/24 = B10; Rubrica = E15;
+R/D = r; SEQ = B11; Valor/0000 = I18;
+Justificativa = I11; Doc legal = I10.
+
+Também verifica I24, independentemente de I18. Quando I24 > 0, gera
+outra linha com Rubrica = E21, R/D = d e Valor/0000 = I24.
+Os demais campos são os mesmos: SIAPE/7 = B8; Nome = B7; MÊS/24 = B10;
+SEQ = B11; Justificativa = I11; Doc legal = I10.
+Se ambas forem positivas, gera duas linhas, primeiro r e depois d.
+Se apenas uma for positiva, gera somente a linha correspondente.
+Se nenhuma for positiva, não gera lançamento para aquela origem.
+O relatório conta o total de linhas incluídas, não apenas os arquivos.
+
+A planilha consolidada e o relatório TXT ficam na pasta Lançamentos RSC - mês ano (exemplo: setembro 2026), sem subpastas,
+A planilha se chama Entrada para macro - X planilhas incluídas.ods, em que X conta apenas as origens que geraram pelo menos um lançamento. Uma origem com duas linhas conta como uma planilha; origens sem lançamento ou com erro não entram nessa contagem. Se o nome já existir, acrescenta (2), (3) etc. O relatório se chama Relatório de Execução - RSC lançamento DD-MM-AAAA.txt, usando a data local da execução. Se já existir, acrescenta (2), (3) etc. Os originais não são alterados.
+Confira no relatório as origens incluídas, sem lançamento ou com erro.
+Se não houver lançamento válido, somente o relatório será criado.
+Cada execução gera uma saída nova; não há deduplicação por SIAPE.
+
+Recalcule e salve as origens no LibreOffice antes de executar.
+O programa lê os resultados salvos das fórmulas; não executa macros.
+Identificadores com zeros à esquerda devem ser texto na origem.
+Requer Python 3.9 ou superior com Tcl/Tk (tkinter), sem bibliotecas adicionais.
+
+Alternativa sem janela: python extrair_rsc.py --pasta "C:\Dados"
+
+Processamento testado com ODS sintéticos, sem modelo externo.
+Os arquivos reais na unidade O: não estavam disponíveis nesta sessão.
+A janela não foi validada visualmente porque o Tcl/Tk local está incompleto.
+
+APRESENTAÇÃO E FORMATAÇÃO
+Valor/0000 é arredondado e exibido sempre com exatamente duas casas decimais (ex.: 10,00; 10,50; 10,56).
+As colunas são dimensionadas pelo conteúdo; textos longos quebram em linhas.
+A execução dura pelo menos 8 segundos e exibe gradualmente as etapas no terminal,
+com barra de progresso e percentual, sem aviso de duração na tela.
+O mês e ano da pasta são obtidos da data do computador na execução.
+
+
+
+
+INTERFACE
+Visual claro com identidade UFGD, cabeçalho institucional, cartões de seleção
+e acompanhamento. O logo está incorporado ao programa: basta copiar o .py.
+O resumo final fica no registro de execução, que possui barra de rolagem.
+
+O título Acerto RSC está centralizado. A barra é animada continuamente,
+com transições suaves entre as etapas, e só chega a 100% ao concluir.
+
+
+Quando houver erros, a seção PLANILHAS COM ERRO lista os nomes dos arquivos.
+Os detalhes de cada erro continuam no registro individual do relatório.
+
+A conclusão aparece em uma janela central com o resumo e botão OK.
+Os blocos de origem e acompanhamento têm cantos arredondados, sombras
+e fundo com gradiente suave.
