@@ -41,6 +41,3 @@ Recalcule e salve as origens no LibreOffice antes da execução; o programa util
 
 Identidade UFGD, seleção de pasta, cartões com gradiente, registro de execução, barra animada e confirmação de conclusão. O logo está incorporado ao Python.
 
-## Contato
-
-Divisão de Pagamento de Pessoal — progesp.dpp@ufgd.edu.br
