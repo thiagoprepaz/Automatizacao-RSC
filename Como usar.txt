@@ -64,3 +64,18 @@ Os detalhes de cada erro continuam no registro individual do relatório.
 A conclusão aparece em uma janela central com o resumo e botão OK.
 Os blocos de origem e acompanhamento têm cantos arredondados, sombras
 e fundo com gradiente suave.
+
+GERADOR DE MACRO INTEGRADO
+Mantenha extrair_rsc.py e gerador_macro.py na mesma pasta.
+Abra extrair_rsc.py e processe as origens.
+Após clicar em OK, a tela do gerador abre com a planilha e a aba preenchidas.
+A conferência dos registros é realizada automaticamente, sem botão adicional.
+Confira os registros e as linhas ignoradas na lista.
+O campo Assunto de cálculo inicia em 44 e pode ser alterado quando necessário.
+Clique em Gerar macro para salvar macro.mac na pasta Lançamentos RSC - mês ano,
+junto da planilha e do relatório. O conteúdo continua sendo HAScript em XML.
+Se macro.mac já existir, será pedida confirmação antes de substituí-lo.
+A janela Macro gerada oferece Retornar ao início e Encerrar programa.
+A tela do gerador não possui barra de progresso; o status informa a geração.
+Sem planilha de saída, o gerador não é aberto.
+O programa gera o arquivo da macro, mas não executa lançamentos em outro sistema.

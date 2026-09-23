@@ -41,3 +41,20 @@ Recalcule e salve as origens no LibreOffice antes da execução; o programa util
 
 Identidade UFGD, seleção de pasta, cartões com gradiente, registro de execução, barra animada e confirmação de conclusão. O logo está incorporado ao Python.
 
+## Contato
+
+Divisão de Pagamento de Pessoal — progesp.dpp@ufgd.edu.br
+
+## Geração de macro
+
+Mantenha `extrair_rsc.py` e `gerador_macro.py` na mesma pasta.
+Após concluir o processamento e clicar em OK, o gerador abre com a planilha
+consolidada selecionada e confere os registros automaticamente.
+
+O campo **Assunto de cálculo** inicia em **44**. Confira os registros e clique
+em **Gerar macro**. O arquivo `macro.mac` é salvo na mesma pasta de resultados,
+com conteúdo HAScript em XML. Se já existir, será solicitada confirmação
+antes da substituição. A confirmação final oferece **Retornar ao início**
+ou **Encerrar programa**.
+
+O programa somente gera a macro; não executa os lançamentos em outro sistema.

@@ -1,4 +1,4 @@
-"""Consolida lançamentos RSC de uma pasta de arquivos ODS.
+﻿"""Consolida lançamentos RSC de uma pasta de arquivos ODS.
 
 Python 3.9+, somente biblioteca padrão. Não executa macros nem fórmulas.
 """
@@ -347,7 +347,7 @@ def formatar_saida(origem, saida):
                 z.writestr(item, doc.toxml(encoding='utf-8') if item.filename == 'content.xml' else entrada.read(item.filename))
 
 
-def processar_pasta(pasta, progresso=lambda mensagem: None, avancar=lambda percentual: None):
+def processar_pasta(pasta, progresso=lambda mensagem: None, avancar=lambda percentual: None, ao_gerar=lambda caminho: None):
     """Processa todos os ODS diretamente na pasta e consolida os aprovados."""
     inicio = time.monotonic()
     enviar_mensagem = progresso
@@ -445,6 +445,8 @@ def processar_pasta(pasta, progresso=lambda mensagem: None, avancar=lambda perce
         avancar(95 + 4 * min(1, (time.monotonic() - espera) / max(restante, 0.1)))
     progresso('Concluído.')
     avancar(100)
+    if incluidos:
+        ao_gerar(saida)
     return resumo + f'\n\nRelatório: {relatorio}'
 
 
@@ -595,6 +597,35 @@ def janela():
         conteudo.bind('<Configure>', ajustar)
         return conteudo
 
+    gerador_atual = None
+
+    def abrir_gerador():
+        nonlocal gerador_atual
+        if planilha_gerada is None:
+            return
+        try:
+            from gerador_macro import App
+        except ImportError as exc:
+            messagebox.showerror('Gerador indisponível', f'Mantenha gerador_macro.py na mesma pasta do programa.\n\n{exc}', parent=root)
+            return
+        anteriores = [(widget, widget.pack_info()) for widget in corpo.winfo_children()]
+        for widget, _ in anteriores:
+            widget.pack_forget()
+        def retornar_inicio():
+            nonlocal gerador_atual, planilha_gerada
+            gerador_atual.destroy()
+            gerador_atual = None
+            planilha_gerada = None
+            for widget, opcoes in anteriores:
+                widget.pack(**opcoes)
+            status.set('Pronto para iniciar um novo processamento')
+            barra['value'] = 0
+            porcentagem.set('0%')
+            root.title('Acerto RSC | Divisão de Pagamento de Pessoal')
+        gerador_atual = App(corpo, planilha=planilha_gerada, aba='Lançamentos',
+                            bloco=bloco_flutuante, rotulo=label, ao_inicio=retornar_inicio)
+        root.title('Acerto RSC | Gerador de Macro')
+
     def mostrar_conclusao(resumo):
         dialogo = tk.Toplevel(root)
         dialogo.withdraw()
@@ -613,6 +644,7 @@ def janela():
         def confirmar(evento=None):
             dialogo.grab_release()
             dialogo.destroy()
+            abrir_gerador()
         botao_ok = ttk.Button(painel_final, text='OK', style='Acao.TButton', command=confirmar)
         botao_ok.pack(ipadx=40)
         dialogo.update_idletasks()
@@ -679,16 +711,18 @@ def janela():
     progresso_visual = 0.0
     ultimo_quadro = time.monotonic()
     conclusao_pendente = None
+    planilha_gerada = None
     status = tk.StringVar(value='Pronto para iniciar')
     porcentagem = tk.StringVar(value='0%')
 
     def iniciar():
-        nonlocal ocupado, progresso_real, progresso_visual, ultimo_quadro, conclusao_pendente
+        nonlocal ocupado, progresso_real, progresso_visual, ultimo_quadro, conclusao_pendente, planilha_gerada
         origem = pasta.get().strip()
         if not origem:
             messagebox.showerror('Selecione uma pasta', 'Escolha a pasta com as planilhas para continuar.', parent=root)
             return
         ocupado = True
+        planilha_gerada = None
         progresso_real = progresso_visual = 0.0
         ultimo_quadro = time.monotonic()
         conclusao_pendente = None
@@ -705,7 +739,8 @@ def janela():
         def trabalhar():
             try:
                 resultado = processar_pasta(origem, lambda msg: eventos.put(('progresso', msg)),
-                                            lambda v: eventos.put(('percentual', v)))
+                                            lambda v: eventos.put(('percentual', v)),
+                                            ao_gerar=lambda caminho: eventos.put(('arquivo', caminho)))
                 eventos.put(('concluido', resultado))
             except Exception as exc:
                 eventos.put(('erro', str(exc)))
@@ -752,11 +787,13 @@ def janela():
     controles = (campo_pasta, botao_pasta, botao_executar)
 
     def acompanhar():
-        nonlocal ocupado, progresso_real, progresso_visual, ultimo_quadro, conclusao_pendente
+        nonlocal ocupado, progresso_real, progresso_visual, ultimo_quadro, conclusao_pendente, planilha_gerada
         try:
             while True:
                 tipo, mensagem = eventos.get_nowait()
-                if tipo == 'percentual':
+                if tipo == 'arquivo':
+                    planilha_gerada = mensagem
+                elif tipo == 'percentual':
                     progresso_real = max(progresso_real, float(mensagem))
                 elif tipo == 'progresso':
                     status.set(mensagem)
@@ -797,7 +834,7 @@ def janela():
         root.after(30, acompanhar)
 
     def fechar():
-        if ocupado:
+        if ocupado or (gerador_atual is not None and gerador_atual._gerando):
             messagebox.showinfo('Processamento em andamento', 'Aguarde o término da leitura das planilhas.', parent=root)
         else:
             root.destroy()
